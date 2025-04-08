@@ -1,16 +1,12 @@
-// Supabase initialization
 const SUPABASE_URL = 'https://apqeitnavsjwqrpruuqq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwcWVpdG5hdnNqd3FycHJ1dXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxMDUzMzYsImV4cCI6MjA1OTY4MTMzNn0.G14iwTdC2qpCsRTw3-JcKTowx4yRWJPpObGGWIr65lQ';
 
-// Initialize Supabase client properly
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Elements
 const ticketForm = document.getElementById('ticketForm');
 const ticketsList = document.getElementById('ticketsList');
 const messageDiv = document.getElementById('message');
 
-// Show message (error or success)
 function showMessage(text, type) {
     messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
     setTimeout(() => {
@@ -18,7 +14,6 @@ function showMessage(text, type) {
     }, 5000);
 }
 
-// Format date to German style
 function formatDate(dateStr) {
     const date = new Date(dateStr);
     return date.toLocaleString('de-DE', {
@@ -30,7 +25,6 @@ function formatDate(dateStr) {
     });
 }
 
-// Get importance class
 function getImportanceClass(importance) {
     switch(importance) {
         case 'Nicht Wichtig':
@@ -44,12 +38,10 @@ function getImportanceClass(importance) {
     }
 }
 
-// Load tickets from Supabase
 async function loadTickets() {
     try {
         ticketsList.innerHTML = '<div class="loading">Lade Tickets...</div>';
         
-        // List all files in the 'tickets' bucket
         const { data: files, error } = await supabase.storage
             .from('tickets')
             .list();
@@ -66,10 +58,8 @@ async function loadTickets() {
         
         console.log('Found files:', files);
         
-        // Sort files by name (newest first - assuming naming convention Ticket.001, etc.)
         files.sort((a, b) => b.name.localeCompare(a.name));
         
-        // Create an array to hold all ticket promises
         const ticketPromises = files.map(async (file) => {
             try {
                 const { data, error: downloadError } = await supabase.storage
@@ -81,7 +71,6 @@ async function loadTickets() {
                     return null;
                 }
                 
-                // Parse the JSON content
                 const text = await data.text();
                 try {
                     const ticket = JSON.parse(text);
@@ -96,10 +85,8 @@ async function loadTickets() {
             }
         });
         
-        // Wait for all tickets to be fetched
         const tickets = await Promise.all(ticketPromises);
         
-        // Filter out any null results and sort by date
         const validTickets = tickets.filter(t => t !== null);
         
         if (validTickets.length === 0) {
@@ -107,7 +94,6 @@ async function loadTickets() {
             return;
         }
         
-        // Sort by date if available
         validTickets.sort((a, b) => {
             if (a.Date && b.Date) {
                 return new Date(b.Date) - new Date(a.Date);
@@ -115,7 +101,6 @@ async function loadTickets() {
             return 0;
         });
         
-        // Render tickets
         ticketsList.innerHTML = validTickets.map(ticket => `
             <div class="ticket">
                 <div class="ticket-header">
@@ -136,10 +121,9 @@ async function loadTickets() {
     }
 }
 
-// Create a new ticket
 async function createTicket(username, problem, importance) {
     try {
-        // Get current count
+
         const { data: files, error: listError } = await supabase.storage
             .from('tickets')
             .list();
@@ -149,11 +133,9 @@ async function createTicket(username, problem, importance) {
             throw listError;
         }
         
-        // Create a new ticket number (count + 1)
         const ticketCount = files ? files.length + 1 : 1;
         const ticketId = `Ticket.${String(ticketCount).padStart(3, '0')}`;
         
-        // Create ticket data
         const ticketData = {
             Username: username,
             Problem: problem,
@@ -163,11 +145,9 @@ async function createTicket(username, problem, importance) {
         
         console.log('Creating ticket:', ticketId, ticketData);
         
-        // Convert to JSON and then to blob
         const jsonData = JSON.stringify(ticketData);
         const blob = new Blob([jsonData], { type: 'application/json' });
         
-        // Upload to Supabase storage
         const { error: uploadError } = await supabase.storage
             .from('tickets')
             .upload(ticketId, blob);
@@ -178,7 +158,7 @@ async function createTicket(username, problem, importance) {
         }
         
         showMessage('Ticket erfolgreich erstellt!', 'success');
-        loadTickets(); // Reload tickets
+        loadTickets();
         return true;
         
     } catch (error) {
@@ -188,7 +168,6 @@ async function createTicket(username, problem, importance) {
     }
 }
 
-// Handle form submission
 ticketForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -204,14 +183,12 @@ ticketForm.addEventListener('submit', async (e) => {
     const success = await createTicket(username, problem, importance);
     
     if (success) {
-        // Clear form
         document.getElementById('username').value = '';
         document.getElementById('problem').value = '';
         document.getElementById('importance').value = 'Nicht Wichtig';
     }
 });
 
-// Load tickets when page loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Page loaded, initializing Supabase and loading tickets...');
     loadTickets();
