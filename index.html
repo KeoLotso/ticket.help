@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Support System</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Ticket Support System</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Neues Ticket erstellen</h2>
+            <div id="message"></div>
+            
+            <form id="ticketForm">
+                <div class="form-group">
+                    <label for="username">Benutzername</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="problem">Problem beschreiben</label>
+                    <textarea id="problem" name="problem" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="importance">Wichtigkeit</label>
+                    <select id="importance" name="importance">
+                        <option value="Nicht Wichtig">Nicht Wichtig</option>
+                        <option value="Mittel">Mittel</option>
+                        <option value="Extrem Wichtig">Extrem Wichtig</option>
+                    </select>
+                </div>
+                
+                <button type="submit">Ticket absenden</button>
+            </form>
+        </div>
+        
+        <h2 class="section-title">Vorhandene Tickets</h2>
+        <div id="ticketsList" class="tickets-list">
+            <div class="loading">Lade Tickets...</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
